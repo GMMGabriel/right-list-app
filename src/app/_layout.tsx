@@ -22,7 +22,7 @@ SplashScreen.preventAutoHideAsync()
 
 export default function Layout() {
   const [themeLoaded, setThemeLoaded] = useState(false)
-  const { colorScheme, setColorScheme } = useColorScheme()
+  const { setColorScheme } = useColorScheme()
 
   useEffect(() => {
     async function prepare() {
@@ -36,7 +36,12 @@ export default function Layout() {
           setColorScheme(temp)
         }
       } catch (e) {
-        console.error('Erro ao tentar aplicar o tema =>', e)
+        console.log('ERRO: Erro ao tentar aplicar o tema =>', e)
+        setColorScheme('system')
+        const storage = new MyStorage()
+        await storage.setItem('theme', 'system')
+        await SplashScreen.hideAsync()
+        setThemeLoaded(true)
       } finally {
         await SplashScreen.hideAsync()
         setThemeLoaded(true)
