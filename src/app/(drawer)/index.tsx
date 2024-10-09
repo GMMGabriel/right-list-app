@@ -1,115 +1,163 @@
-import { Alert, FlatList, ListRenderItemInfo, SafeAreaView, Switch, Text, TouchableOpacity, View } from 'react-native';
-import { Link } from 'expo-router';
-import { Feather, MaterialIcons } from '@expo/vector-icons'
+import { useRef, useState } from 'react'
+import { SafeAreaView, SectionList, Text, TouchableOpacity, View } from 'react-native'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { Feather, MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons'
 
-import { Header } from '@/components/header';
-import { ButtonIcon } from '@/components/butttonIcon';
-import { Format } from '@/utilities/format';
-import { useRef, useState } from 'react';
-import { IData, simulatorProductList } from '@/utilities/simulatorProductList';
-import { colors } from '@/styles/colors';
-import { ItemList } from '@/components/renderItem';
+import { RenderItemList } from '@/components/renderItemList'
+import { BottomSheetListDetails } from '@/components/bottomSheetListDetails'
+
+import { generateSectionListItems, IData, simulatorProductList } from '@/utilities/simulatorProductList'
+import { Format } from '@/utilities/format'
+import { Link } from 'expo-router'
+import { colors } from '@/styles/colors'
+import { ButtonIcon } from '@/components/buttonIcon'
+import { RenderSectionHeaderList } from '@/components/renderSectionHeaderList'
+import { useColorScheme } from 'nativewind'
 
 export default function ListPage() {
   const format = new Format()
+  const { colorScheme } = useColorScheme()
   // const calc = new Calculations()
 
-  const [modeList, setModeList] = useState<boolean>(false)
-  const refProductList = useRef<FlatList<IData> | null>(null)
+  const [isExpanded, setIsExpanded] = useState<boolean>(true)
 
-  const total = simulatorProductList.length
-  const totalCollected = simulatorProductList.filter(spl => spl.isCollected).length
-  const p = total ? Number((totalCollected / total * 100).toFixed(1)) : 0
+  const productList = generateSectionListItems()
 
-  function updateSwitch() {
-    setModeList(state => !state)
-  }
+  const refProductList = useRef<SectionList<IData> | null>(null)
 
-  function separator() {
-    return (
-      <View className='w-full h-[1px] bg-zinc-700' />
-    )
+  const totalProductList = simulatorProductList.length
+  const totalProductIsCollected = simulatorProductList.length ? simulatorProductList.filter(spl => spl.isCollected).length : 0
+  const percentage = Number((totalProductIsCollected / totalProductList * 100).toFixed(1))
+  const totalAmountIsCollected = simulatorProductList.filter(spl => spl.isCollected)
+    .reduce(
+      (acc: number, d: IData) =>
+        Number((acc + Number(((d.promotionalAmount > 0 && d.quantity >= d.promotionalQuantity ? d.promotionalAmount : d.amount) * d.quantity)
+          .toFixed(2))).toFixed(2))
+      , 0).toFixed(2)
+  const totalAmountDiscount = simulatorProductList.filter(spl => spl.isCollected && spl.promotionalAmount > 0 && spl.quantity >= spl.promotionalQuantity)
+    .reduce(
+      (acc: number, d: IData) =>
+        Number((acc + Number((
+          Number((d.amount * d.quantity).toFixed(2))
+          - Number((d.promotionalAmount * d.quantity).toFixed(2))
+        ).toFixed(2))).toFixed(2))
+      , 0).toFixed(2)
+
+  function handleUpdateExpand() {
+    setIsExpanded(state => !state)
   }
 
   return (
     <>
-      <View
-        className={`flex-1 items-center bg-backgroundPrimary-light dark:bg-backgroundPrimary-dark`}
-      >
-        {/* LISTA */}
-        {simulatorProductList.length ? (
-          <SafeAreaView
-            className='flex-1 w-full'
-          >
-            <FlatList
-              ref={(ref) => { refProductList.current = ref }}
-              data={simulatorProductList}
-              renderItem={ItemList}
-              ItemSeparatorComponent={separator}
-              keyExtractor={item => item.id}
-            />
-          </SafeAreaView>
-        ) : (
-          <View className='flex flex-1 justify-center'>
-            <Text className='text-3xl text-tint-light dark:text-tint-dark'>
-              Lista vazia
-            </Text>
-          </View>
-        )}
-
-        <View className='w-full rounded-ss-2xl rounded-se-2xl border-t-2 border-solid border-zinc-700 bg-backgroundSecondary-light dark:bg-backgroundSecondary-dark'>
-          {/* PROGRESSO DA COMPRA */}
-          <View className='flex-row gap-4 items-center p-4'>
-            <Text className='text-tint-light dark:text-tint-dark'>
-              {format.currency(
-                simulatorProductList.filter(spl => spl.isCollected).reduce((acc: number, d: IData) => Number((acc + Number((d.amount * d.quantity).toFixed(2))).toFixed(2)), 0).toFixed(2),
-                true,
-                'pt-br'
-              )}
-            </Text>
-            <View className='flex-1 flex-row gap-4 items-center'>
-              <View className='h-1 flex-1 bg-zinc-600/50 rounded-lg overflow-hidden'>
-                <View
-                  style={{ width: `${p}%` }}
-                  className={`h-1 bg-theme`}
-                />
-              </View>
-              <Text className='text-base text-tint-light dark:text-tint-dark'>
-                {p}% - {totalCollected}/{total}
+      <GestureHandlerRootView>
+        <View
+          className={`flex-1 items-center bg-backgroundPrimary-light dark:bg-backgroundPrimary-dark`}
+        >
+          {/* LISTA */}
+          {simulatorProductList.length ? (
+            <SafeAreaView
+              className='flex-1 w-full pt-2 pb-[74px]' // 74px porque a altura do bottom sheet inicialmente é 74px
+            >
+              <SectionList
+                ref={refProductList}
+                sections={productList}
+                keyExtractor={item => item.id}
+                renderItem={({ item }) => isExpanded ? <RenderItemList item={item} /> : <View />}
+                renderSectionHeader={({ section }) => RenderSectionHeaderList({ section })}
+                showsVerticalScrollIndicator={false}
+                stickySectionHeadersEnabled
+              />
+            </SafeAreaView>
+          ) : (
+            <View
+              className='flex flex-1 justify-center pb-[74px]' // 74px porque a altura do bottom sheet inicialmente é 74px
+            >
+              <Text className='text-3xl text-tint-light dark:text-tint-dark'>
+                Lista vazia
               </Text>
             </View>
-            {/* <Link href='#' className='p-4'>
-              <Feather name='plus' color={colors.theme.DEFAULT} size={32} />
-            </Link> */}
-          </View>
+          )}
 
-          {/* VALOR TOTAL E BOTÃO PARA SALVAR A LISTA */}
-          <View className='flex-row items-center justify-between py-2'>
-            <ButtonIcon className='px-4'>
-              <MaterialIcons name='save' color={colors.theme.DEFAULT} size={32} />
-            </ButtonIcon>
+          {/* ===== bottom sheet ===== */}
 
-            <Link
-              href='/newProduct'
-              className='px-4'
-            // onPress={() => {
-            //   refProductList.current?.scrollToEnd()
-            // }}
-            >
-              <Feather name='plus' color={colors.theme.DEFAULT} size={32} />
-            </Link>
-          </View>
+          <BottomSheetListDetails>
+            <View className=''>
+              <View className='flex-row items-center py-2'>
+                <Text className='flex-1 pl-4 text-tint-light dark:text-tint-dark'>
+                  {format.currency(
+                    totalAmountIsCollected,
+                    true
+                  )}
+                </Text>
+
+                {simulatorProductList.length > 0 && (
+                  <ButtonIcon
+                    className='px-4 pt-1'
+                    onPress={handleUpdateExpand}
+                  >
+                    <MaterialCommunityIcons name={isExpanded ? 'arrow-collapse-vertical' : 'arrow-expand-vertical'} color={colors.theme.DEFAULT} size={32} />
+                  </ButtonIcon>
+                )}
+
+                <Link
+                  href={`/newProduct/0`}
+                  className='px-4'
+                >
+                  <Feather name='plus' color={colors.theme.DEFAULT} size={32} />
+                </Link>
+              </View>
+
+              {simulatorProductList.length > 0 && (
+                <View className='gap-4 items-center p-4'>
+                  <View className='w-full gap-4'>
+                    <View className='flex-row gap-4 items-center'>
+                      <View className='h-1 flex-1 bg-zinc-600/50 rounded-lg overflow-hidden'>
+                        <View
+                          style={{ width: `${percentage}%` }}
+                          className={`h-1 bg-theme`}
+                        />
+                      </View>
+
+                      <Text className='text-base text-tint-light dark:text-tint-dark'>
+                        {percentage}% - {totalProductIsCollected}/{totalProductList}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View className='w-full flex-row gap-2 items-center justify-center'>
+                    <Text className='text-base text-tint-light dark:text-tint-dark'>
+                      Total de desconto:
+                    </Text>
+                    <Text className='text-base text-tint-light dark:text-tint-dark'>
+                      {format.currency(totalAmountDiscount, true)}
+                    </Text>
+                  </View>
+
+                  <View className='w-full gap-4'>
+                    <TouchableOpacity
+                      className='w-full py-2 px-4 flex-row items-center justify-center gap-1 rounded-lg bg-theme'
+                    >
+                      <Text className='text-base text-tint-light dark:text-tint-dark'>
+                        Definir limite da lista
+                      </Text>
+                      <MaterialIcons name='attach-money' color={colorScheme === 'dark' ? colors.tint.dark : colors.tint.light} size={32} />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      className='w-full py-2 px-4 flex-row items-center justify-center gap-2 rounded-lg bg-theme'
+                    >
+                      <Text className='text-base text-tint-light dark:text-tint-dark'>
+                        Salvar lista
+                      </Text>
+                      <MaterialIcons name='save' color={colorScheme === 'dark' ? colors.tint.dark : colors.tint.light} size={32} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            </View>
+          </BottomSheetListDetails>
         </View>
-
-        {/* <Text className='mt-4 text-3xl text-theme-color'>Home</Text> */}
-
-        {/* <Link
-          href='/newProduct'
-          className='p-2 bg-theme-color-700 rounded text-tint-light dark:text-tint-dark'
-        >
-          Novo produto
-        </Link> */}
-      </View>
+      </GestureHandlerRootView>
     </>
   )
 }
