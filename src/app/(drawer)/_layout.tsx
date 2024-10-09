@@ -8,9 +8,9 @@ import {
   FontAwesome5
 } from '@expo/vector-icons'
 
-import { colors } from '@/styles/colors'
-import { Text } from 'react-native'
 import { HeaderListPage } from '@/components/headerListPage'
+
+import { colors } from '@/styles/colors'
 
 export default function AppRoutes() {
   const { colorScheme } = useColorScheme()
@@ -37,12 +37,12 @@ export default function AppRoutes() {
             },
             drawerActiveTintColor: colors.theme.DEFAULT,
             drawerInactiveTintColor: tintColor,
-            headerRight: () => <HeaderListPage />
           }}
         >
           <Drawer.Screen
             name='index'
             options={{
+              headerRight: () => <HeaderListPage />,
               drawerLabel: 'Lista',
               drawerIcon: ({ color, size }) =>
                 <Feather
@@ -61,7 +61,7 @@ export default function AppRoutes() {
               drawerIcon: ({ color, size }) =>
                 <FontAwesome5
                   name="history"
-                  size={size-1}
+                  size={size - 1}
                   color={color}
                 />,
             }}
