@@ -1,11 +1,15 @@
-import { Alert, Switch, Text, TouchableOpacity, View } from "react-native";
-import { MaterialIcons } from '@expo/vector-icons';
-import { ButtonIcon } from "./butttonIcon";
-import { colors } from "@/styles/colors";
-import { useState } from "react";
+import { useState } from 'react'
+import { Alert, Switch, Text, TouchableOpacity, View } from 'react-native'
+import { MaterialIcons } from '@expo/vector-icons'
+
+import { ButtonIcon } from './buttonIcon'
+
+import { colors } from '@/styles/colors'
 
 export function HeaderListPage() {
   const [modeList, setModeList] = useState<boolean>(false)
+
+  // console.log('screen.width:', Dimensions.get('screen').width)
 
   function handleUpdateModeList() {
     setModeList(state => !state)
@@ -19,7 +23,7 @@ export function HeaderListPage() {
         onPress={handleUpdateModeList}
       >
         <Text className='text-xs text-tint-light dark:text-tint-dark'>
-          Modo {modeList ? 'rascunho' : 'compra'}
+          Modo rascunho
         </Text>
         <Switch
           aria-label='switch'
@@ -33,6 +37,12 @@ export function HeaderListPage() {
           }}
         />
       </TouchableOpacity>
+
+      <ButtonIcon
+        onPress={() => { }}
+      >
+        <MaterialIcons name='search' color={colors.theme.DEFAULT} size={32} />
+      </ButtonIcon>
 
       <ButtonIcon
         onPress={() => Alert.alert(
@@ -50,6 +60,14 @@ export function HeaderListPage() {
       >
         <MaterialIcons name='clear-all' color={colors.theme.DEFAULT} size={32} />
       </ButtonIcon>
+
+      {/* <View
+        className={`p-4 bg-red-600 w-[${Dimensions.get('screen').width}px] absolute right-0 -bottom-full`}
+      >
+        <Text className='text-white'>
+          Teste
+        </Text>
+      </View> */}
     </View>
   )
 }
