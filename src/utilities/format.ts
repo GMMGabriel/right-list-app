@@ -19,7 +19,7 @@ export class Format {
    * @param {'us' | 'pt-br'} locale indica se o valor é em Dólar ou em Real.
    * @returns string
    */
-  currency(value: number | string, withCurrencySymbol: boolean = false, locale: 'us' | 'pt-br' = 'us'): string {
+  currency(value: number | string, withCurrencySymbol: boolean = false, locale: 'us' | 'pt-br' = 'pt-br'): string {
     const { symbol, decimal, thousands } = locale === 'us' ? this.usSymbols : this.ptBrSymbols
 
     if (value === '') return `0${decimal}00`
@@ -58,7 +58,7 @@ export class Format {
    * @param {'us' | 'pt-br'} locale indica se o valor é em Dólar ou em Real.
    * @returns string
    */
-  currencyInInput(value: number | string, withCurrencySymbol: boolean = false, locale: 'us' | 'pt-br' = 'us'): string {
+  currencyInInput(value: number | string, withCurrencySymbol: boolean = false, locale: 'us' | 'pt-br' = 'pt-br'): string {
     const { symbol, decimal, thousands } = locale === 'us' ? this.usSymbols : this.ptBrSymbols
     value = Number(value.toString().replace(/[^\d]/g, '')).toString()
 
