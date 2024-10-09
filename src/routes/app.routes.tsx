@@ -1,3 +1,4 @@
+import { colors } from '@/styles/colors'
 import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { useColorScheme } from 'nativewind'
@@ -12,6 +13,8 @@ export default function AppRoutes() {
         screenOptions={{
           headerShown: false,
           animation: 'ios',
+          navigationBarColor: colorScheme === 'dark' ? colors.backgroundSecondary.dark : colors.backgroundSecondary.light
+          // navigationBarColor: 'blue'
         }}
       >
         <Stack.Screen
@@ -21,9 +24,10 @@ export default function AppRoutes() {
           }}
         />
         <Stack.Screen
-          name='newProduct'
+          name='newProduct/[id]'
           options={{
-            title: 'Novo produto'
+            title: 'Novo produto',
+            navigationBarColor: colorScheme === 'dark' ? colors.backgroundPrimary.dark : colors.backgroundPrimary.light
           }}
         />
       </Stack>
