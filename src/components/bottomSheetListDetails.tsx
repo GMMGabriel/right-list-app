@@ -1,12 +1,17 @@
-import { ReactNode, useCallback, useMemo } from 'react'
+import { forwardRef, ReactNode, RefObject, useCallback, useMemo } from 'react'
 import BottomSheet, { BottomSheetBackdrop } from '@gorhom/bottom-sheet'
 import { useColorScheme } from 'nativewind'
 
 import { colors } from '@/styles/colors'
 
-export function BottomSheetListDetails({ children }: { children: ReactNode }) {
+interface IBottomSheetListDetails {
+  children: ReactNode
+}
+type Ref = BottomSheet
+
+export const BottomSheetListDetails = forwardRef<Ref, IBottomSheetListDetails>((props, ref) => {
   const { colorScheme } = useColorScheme()
-  const snapPoints = useMemo(() => [74, '38%', '70%'], [])
+  const snapPoints = useMemo(() => [74, 284, '70%'], [])
 
   const renderBackdrop = useCallback(
     (props: any) =>
@@ -23,6 +28,7 @@ export function BottomSheetListDetails({ children }: { children: ReactNode }) {
   return (
     <>
       <BottomSheet
+        ref={ref}
         snapPoints={snapPoints}
         index={0}
         backdropComponent={renderBackdrop}
@@ -38,8 +44,8 @@ export function BottomSheetListDetails({ children }: { children: ReactNode }) {
           opacity: .7
         }}
       >
-        {children}
+        {props.children}
       </BottomSheet>
     </>
   )
-}
+})

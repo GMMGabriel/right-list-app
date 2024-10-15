@@ -39,12 +39,6 @@ export function HeaderListPage() {
       </TouchableOpacity>
 
       <ButtonIcon
-        onPress={() => { }}
-      >
-        <MaterialIcons name='search' color={colors.theme.DEFAULT} size={32} />
-      </ButtonIcon>
-
-      <ButtonIcon
         onPress={() => Alert.alert(
           'Atenção',
           'Deseja limpar a lista permanentemente?',
