@@ -198,10 +198,15 @@ export class Product {
    */
   public async save() {
     const realm = await getRealm(ProductSchema)
-    realm.write(() => {
-      realm.create('Product', this.getObjectFromClass())
-    })
-    realm.close()
+    try {
+      realm.write(() => {
+        realm.create('Product', this.getObjectFromClass())
+      })
+      realm.close()
+    } catch (e) {
+      realm.close()
+      throw new Error('Erro ao tentar salvar o produto no banco de dados.')
+    }
   }
 
   // Listar todos os produtos
@@ -224,13 +229,18 @@ export class Product {
    */
   public async getById(id?: string) {
     if (!this._id && !id) {
-      console.error('Não é possível buscar o produto, nenhum ID fornecido.')
-      return
+      throw new Error('Não é possível buscar o produto, nenhum ID fornecido.')
     }
     const realm = await getRealm(ProductSchema)
-    const productFound = realm.objectForPrimaryKey('Product', id ?? this._id)
-    if (productFound) {
-      Object.assign(this, productFound)
+    try {
+      const productFound = realm.objectForPrimaryKey('Product', id ?? this._id)
+      if (productFound) {
+        Object.assign(this, productFound)
+      }
+      realm.close()
+    } catch (e) {
+      realm.close()
+      throw new Error('Erro ao tentar buscar o produto pelo ID no banco de dados.')
     }
   }
 
@@ -243,13 +253,18 @@ export class Product {
    */
   public async update() {
     const realm = await getRealm(ProductSchema)
-    realm.write(() => {
-      const product = realm.objectForPrimaryKey('Product', this._id)
-      if (product) {
-        Object.assign(product, this) // Atualiza no banco de dados
-      }
-    })
-    realm.close()
+    try {
+      realm.write(() => {
+        const product = realm.objectForPrimaryKey('Product', this._id)
+        if (product) {
+          Object.assign(product, this) // Atualiza no banco de dados
+        }
+      })
+      realm.close()
+    } catch (e) {
+      realm.close()
+      throw new Error('Erro ao tentar atualizar o produto no banco de dados.')
+    }
   }
 
   /**
@@ -261,12 +276,17 @@ export class Product {
    */
   public async delete() {
     const realm = await getRealm(ProductSchema)
-    realm.write(() => {
-      const product = realm.objectForPrimaryKey('Product', this._id)
-      if (product) {
-        realm.delete(product)
-      }
-    })
-    realm.close()
+    try {
+      realm.write(() => {
+        const product = realm.objectForPrimaryKey('Product', this._id)
+        if (product) {
+          realm.delete(product)
+        }
+      })
+      realm.close()
+    } catch (e) {
+      realm.close()
+      throw new Error('Erro ao tentar deletar o produto do banco de dados.')
+    }
   }
 }

@@ -33,6 +33,7 @@ export const useListStore = create(
         return { list }
       }
       const list = new List({})
+      list.setLastModification()
       list.save()
       return { list, productList: [] }
     }),
@@ -105,7 +106,7 @@ export const useListStore = create(
       // Remove o produto da lista
       state.productList[sectionIndex].data = state.productList[sectionIndex].data.filter(p => p.getId() !== currentProduct.getId())
       state.list.whenToRemoveProduct(currentProduct)
-      state.list.save()
+      state.list.update()
 
       return {
         list: state.list,

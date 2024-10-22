@@ -177,32 +177,42 @@ export class List {
    */
   public async save() {
     const realm = await getRealm(ListSchema)
-    realm.write(() => {
-      realm.create('List', this.getObjectFromClass())
-    })
-    realm.close()
+    try {
+      realm.write(() => {
+        realm.create('List', this.getObjectFromClass())
+      })
+      realm.close()
+    } catch (e) {
+      realm.close()
+      throw new Error('Erro ao tentar salvar a lista no banco de dados.')
+    }
   }
 
   /**
    * @name getById
    * @param {string} id identificador da lista
    * @description
-   * Busca no banco de dados a lista através do ID. É utilizado ao criar uma
-   * instância da classe em branco passando apenas o ID, para utilizá-lo na
-   * busca. Se um ID for fornecido pelo parâmetro da função, significa que os
+   * Busca no banco de dados a lista através do próprio ID. É utilizado ao
+   * criar uma instância da classe em branco passando apenas o ID, para utilizá-lo
+   * na busca. Se um ID for fornecido pelo parâmetro da função, significa que os
    * dados da lista buscada no banco de dados irão sobrescrever os dados da
    * lista atual.
    * @returns void
    */
   public async getById(id?: string) {
     if (!this._id && !id) {
-      console.error('Não é possível buscar a lista, nenhum ID fornecido.')
-      return
+      throw new Error('Não é possível buscar a lista, nenhum ID fornecido.')
     }
     const realm = await getRealm(ListSchema)
-    const listFound = realm.objectForPrimaryKey('List', id ?? this._id)
-    if (listFound) {
-      Object.assign(this, listFound)
+    try {
+      const listFound = realm.objectForPrimaryKey('List', id ?? this._id)
+      if (listFound) {
+        Object.assign(this, listFound)
+      }
+      realm.close()
+    } catch (e) {
+      realm.close()
+      throw new Error('Erro ao tentar buscar a lista pelo ID no banco de dados.')
     }
   }
 
@@ -215,14 +225,19 @@ export class List {
    */
   public async update() {
     const realm = await getRealm(ListSchema)
-    realm.write(() => {
-      const list = realm.objectForPrimaryKey('List', this._id)
-      if (list) {
-        this.setLastModification()
-        Object.assign(list, this)
-      }
-    })
-    realm.close()
+    try {
+      realm.write(() => {
+        const list = realm.objectForPrimaryKey('List', this._id)
+        if (list) {
+          this.setLastModification()
+          Object.assign(list, this)
+        }
+      })
+      realm.close()
+    } catch (e) {
+      realm.close()
+      throw new Error('Erro ao tentar atualizar a lista no banco de dados.')
+    }
   }
 
   /**
@@ -234,13 +249,18 @@ export class List {
    */
   public async delete() {
     const realm = await getRealm(ListSchema)
-    realm.write(() => {
-      const list = realm.objectForPrimaryKey('List', this._id)
-      if (list) {
-        realm.delete(list)
-      }
-    })
-    realm.close()
+    try {
+      realm.write(() => {
+        const list = realm.objectForPrimaryKey('List', this._id)
+        if (list) {
+          realm.delete(list)
+        }
+      })
+      realm.close()
+    } catch (e) {
+      realm.close()
+      throw new Error('Erro ao tentar deletar a lista do banco de dados.')
+    }
   }
 
   /**
@@ -259,33 +279,39 @@ export class List {
 
   public async getAllProductsInTheList() {
     const realm = await getRealm(ProductSchema)
-    const temp = realm.objects<Product>('Product').filtered('list_id == $0', this._id)
-    const sectionList = temp.reduce((acc, product) => {
-      // Verifica se já existe uma seção com o mesmo nome
-      const sectionIndex = acc.findIndex(section => section.title === product.getSection())
+    try {
+      const temp = realm.objects<Product>('Product').filtered('list_id == $0', this._id)
+      const sectionList = temp.reduce((acc, product) => {
+        // Verifica se já existe uma seção com o mesmo nome
+        const sectionIndex = acc.findIndex(section => section.title === product.getSection())
   
-      // Se a seção não existir, cria uma nova
-      if (sectionIndex === -1) {
-        acc.push({
-          title: product.getSection(),
-          data: [product],
-        })
-      } else {
-        // Se a seção já existir, adiciona o produto à seção correspondente
-        acc[sectionIndex].data.push(product)
-      }
+        // Se a seção não existir, cria uma nova
+        if (sectionIndex === -1) {
+          acc.push({
+            title: product.getSection(),
+            data: [product],
+          })
+        } else {
+          // Se a seção já existir, adiciona o produto à seção correspondente
+          acc[sectionIndex].data.push(product)
+        }
   
-      return acc
-    }, [] as TProductList)
+        return acc
+      }, [] as TProductList)
   
-    // Ordena as seções por título
-    sectionList.sort((sa, sb) => sa.title.localeCompare(sb.title))
+      // Ordena as seções por título
+      sectionList.sort((sa, sb) => sa.title.localeCompare(sb.title))
   
-    // Ordena os produtos dentro de cada seção
-    sectionList.forEach(section => {
-      section.data.sort((pa, pb) => pa.getName().localeCompare(pb.getName()))
-    })
+      // Ordena os produtos dentro de cada seção
+      sectionList.forEach(section => {
+        section.data.sort((pa, pb) => pa.getName().localeCompare(pb.getName()))
+      })
   
-    return sectionList
+      realm.close()
+      return sectionList
+    } catch (e) {
+      realm.close()
+      throw new Error('Erro ao tentar buscar os produtos da lista no banco de dados.')
+    }
   }
 }
